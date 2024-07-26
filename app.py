@@ -1,23 +1,24 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
 from flask_cors import CORS
-from crawler import get_ptn_list, get_prodi_list
+import json
 
 app = Flask(__name__)
 CORS(app)  # Aktifkan CORS untuk seluruh aplikasi
 
-@app.route('/api/ptn', methods=['GET'])
-def api_ptn():
-    ptn_list = get_ptn_list()
-    return jsonify(ptn_list)
+# Baca data dari file JSON dengan encoding latin-1
+with open('ptn_data.json', 'r', encoding='latin-1') as f:
+    ptn_data = json.load(f)
 
-@app.route('/api/prodi', methods=['GET'])
-def api_prodi():
-    ptn_id = request.args.get('id')
-    if not ptn_id:
-        return jsonify({'error': 'Missing "id" parameter'}), 400
+@app.route('/ptns', methods=['GET'])
+def get_ptns():
+    return jsonify(ptn_data)
 
-    prodi_list = get_prodi_list(ptn_id)
-    return jsonify(prodi_list)
+@app.route('/ptns/<ptn_id>', methods=['GET'])
+def get_prodi_by_ptn(ptn_id):
+    for ptn in ptn_data:
+        if ptn['ptn_id'] == ptn_id:
+            return jsonify(ptn)
+    return jsonify({'error': 'PTN tidak ditemukan'}), 404
 
 if __name__ == '__main__':
     app.run(debug=True)
